@@ -4,6 +4,20 @@
 #include "util_structs.hpp"
 
 namespace study {
+
+  // proxy for output node info
+  class kd_node_info {
+  public:
+    kd_node_info(const kd_tree_node* const node) : ptr(node) { }
+
+    const BBox& bound() const { return ptr->getBBox(); }
+    size_type depth() const { return ptr->getDepth(); }
+    const std::vector<size_type>& ids() const { return ptr->getData(); }
+
+  private:
+    const kd_tree_node* const ptr;
+  };
+
   class kd_tree_node final {
   public:
     // TODO: move 5 rule responsibility to buff object inside (memory manager)

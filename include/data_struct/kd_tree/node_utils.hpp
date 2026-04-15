@@ -134,8 +134,8 @@ namespace utils {
   template <typename Primitive>
   using NodeSplitter = 
   std::function<std::optional<SplitInfo>(const BBox&,
-                                        const std::vector<Primitive>& objs,
-                                        const std::vector<size_type>& obj_ids)>;
+                                         const std::vector<Primitive>& objs,
+                                         const std::vector<size_type>& obj_ids)>;
 
   template <typename Primitive>
   std::optional<SplitResult> splitNode(const kd_tree_node* node,
