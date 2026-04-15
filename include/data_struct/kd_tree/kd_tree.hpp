@@ -28,23 +28,21 @@ namespace study {
     kd_tree<value_type>& operator=(kd_tree<value_type>&& other)      = delete; // move assign
     ~kd_tree();
 
-    void findNearestObj(NearestInfo& info, const Point3f& point);
-    void findNearestObjInRadius(NearestInfo& info, const Point3f& point);
-
+    NearestInfo findNearestObj(const Point3f& point);
+    NearestInfo findNearestObjInRadius(const Point3f& point, float radius);
     kd_node_info findNearestLeaf(const Point3f& point) const;
 
     size_type size() const;
 
   private:
-    void createTree(const std::vector<value_type>& objs, NodeSplitter func);
+    // recursive function
     node_type* createTreeImpl(size_type& leafs_count,
                               const BBox& bbox,
                               std::vector<size_type>& obj_ids,
                               NodeSplitter func,
                               const size_type depth,
                               const size_type max_depth = 32);
-
-    void findNearestObjInRadiusImpl(NearestInfo& info, const node_type* node, const Point3f& point);
+    void findNearestObjInRadiusImpl(NearestInfo& info, const node_type* node, const Point3f& point, float radius);
 
   private:
     bool use_multithread_;

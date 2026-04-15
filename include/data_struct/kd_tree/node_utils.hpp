@@ -204,7 +204,7 @@ namespace utils {
   }
 
   template <typename Primitive>
-  NearestInfo findNearestObj(const kd_tree_node* const node,
+  NearestInfo findNearestObj(const kd_node_info& node,
                              std::vector<int>& objs_used,
                              std::vector<size_type>& objs_used_ids,
                              const std::vector<Primitive>& objs,
@@ -218,20 +218,20 @@ namespace utils {
     for(size_type idx = 0; idx < objs_size; ++idx)
     {
       // TODO: add getNode with id
-      if (objs_used[node->getData()[idx]])
+      if (objs_used[node.id(idx)])
         continue;
 
-      float dist2 = math::dist2(objs[node->getData()[idx]], point);
+      float dist2 = math::dist2(objs[node.id(idx)], point);
       
       if (dist2 < min_dist2)
       {
         min_dist2 = dist2;
-        info.id = node->getData()[idx];
+        info.id = node.id(idx);
         info.min_dist2 = min_dist2;
       }
 
-      objs_used[node->getData()[idx]] = 1; // 1 -> true
-      objs_used_ids.push_back(node->getData()[idx]);
+      objs_used[node.id(idx)] = 1; // 1 -> true
+      objs_used_ids.push_back(node.id(idx));
     }
 
     if (min_dist2 < eps2)

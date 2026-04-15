@@ -77,6 +77,11 @@ namespace study {
     obj_ids_ = std::move(obj_ids);
   }
 
+  size_type kd_tree_node::getId(size_type idx) const
+  {
+    return obj_ids_[idx];
+  }
+
   const std::vector<size_type>& kd_tree_node::getData() const
   {
     return obj_ids_;

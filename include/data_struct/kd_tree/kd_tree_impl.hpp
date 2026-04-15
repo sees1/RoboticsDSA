@@ -5,12 +5,6 @@ kd_tree<T>::kd_tree(const std::vector<value_type>& objs, NodeSplitter func)
   size_(0),
   use_multithread_(multithread)
 {
-  createTree(objs, func);
-}
-
-template <typename T>
-void kd_tree<T>::createTree(const std::vector<value_type>& objs, NodeSplitter func)
-{
   size_type objs_size = objs.size();
   BBox common_bound = math::calcGroupBound(objs);
 
@@ -86,55 +80,29 @@ kd_node_info kd_tree<T>::findNearestLeaf(const Point3f& point) const
 }
 
 template <typename T>
-const typename kd_tree<T>::node_type* const
-kd_tree<T>::findNearestLeafImpl(const node_type* node, const Point3f& point) const
-{
-  while (node->getLeft() != nullptr && node->getRight() != nullptr)
-  {
-    if (node->getRight() == nullptr)
-    {
-      node = node->getRight();
-      continue;
-    }
-
-    if (node->getLeft() == nullptr)
-    {
-      node = node->getLeft();
-      continue;
-    }
-
-    Point3f lhs_mid_pivot = math::calcMid(node->getLeft()->getBBox());
-    Point3f rhs_mid_pivot = math::calcMid(node->getRight()->getBBox());
-
-    if ((point - lhs_mid_pivot).squaredNorm() < (point - rhs_mid_pivot).squaredNorm())
-      node = node->getLeft();
-    else
-      node = node->getRight();
-  } 
-}
-
-template <typename T>
 void kd_tree<T>::findNearestObj(NearestInfo& info, const Point3f& point)
 {
-  const node_type* const leaf = findNearestLeaf(point);
+  kd_node_info leaf_info = findNearestLeaf(point);
 
-  info = utils::findNearestObj(leaf, obj_used_[0], obj_used_ids_[0], objs_, point);
+  info = utils::findNearestObj(leaf, obj_used_, obj_used_ids_, objs_, point);
 
   if (std::fabs(info.min_dist2 - 0.0f) >= eps2 && !math::canInscribeSphereInBBox(leaf->getBBox(), point, info.min_dist))
     findNearestObjInRadius(info, point);
 
-  size_type obj_used_ids_size = obj_used_ids_[0].size();
+  size_type obj_used_ids_size = obj_used_ids_.size();
 
   for(size_type idx = 0; idx < obj_used_ids_size; ++idx)
-    obj_used_[0][obj_used_ids_[0][idx]] = 0; // 0 -> false
+    obj_used_[obj_used_ids_[idx]] = 0; // 0 -> false
 
-  obj_used_ids_[0].clear();
+  obj_used_ids_.clear();
 }
 
 template <typename T>
-void kd_tree<T>::findNearestObjInRadius(NearestInfo& info, const Point3f& point)
+NearestInfo kd_tree<T>::findNearestObjInRadius(const Point3f& point)
 {
+  NearestInfo info;
   findNearestObjInRadiusImpl(info, root_, point);
+  return info;
 }
 
 template <typename T>
@@ -150,7 +118,7 @@ void kd_tree<T>::findNearestObjInRadiusImpl(NearestInfo& info, const node_type* 
   {
     if (node->getLeft() == nullptr && node->getRight() == nullptr)
     {
-      auto result = utils::findNearestObj(node, obj_used_[0], obj_used_ids_[0], objs_, point);
+      auto result = utils::findNearestObj(node, obj_used_, obj_used_ids_, objs_, point);
       if (result.min_dist < info.min_dist)
         info = *result;
       return;      
