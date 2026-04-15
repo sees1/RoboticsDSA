@@ -1,6 +1,7 @@
 #pragma once
 #include "util_structs.hpp"
 #include "primitives.hpp"
+#include "math_traits.hpp"
 
 #include <cmath>
 
@@ -40,11 +41,10 @@ namespace math {
     return distFromCorner.squaredNorm() <= std::pow(radius, 2);
   }
 
-  template <typename T>
-  BBox calcGroupBound(const std::vector<T>& objs)
+  template <typename Primitive,
+            typename = std::enable_if_t<primitive_traits<Primitive>::has_bound_v>>
+  BBox calcGroupBound(const std::vector<Primitive>& objs)
   {
-    // TODO: add concept for all T that should have min/max Point3f
-    // TODO: add concept for all T that should have getBBox() func
     size_t sz = objs.size();
     BBox common_bound;
     for (size_t dim = 0; dim < 3; ++dim)

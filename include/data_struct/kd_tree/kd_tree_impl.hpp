@@ -16,7 +16,6 @@ kd_tree<T>::kd_tree(const std::vector<value_type>& objs, NodeSplitter func)
   root_ = createTreeImpl(objs_size, common_bound, ids, func, 0);
 }
 
-// TODO: rewrite in iterative form
 template <typename T>
 typename kd_tree<T>::node_type* kd_tree<T>::createTreeImpl(size_type& leafs_count,
                                                            const BBox& bbox,

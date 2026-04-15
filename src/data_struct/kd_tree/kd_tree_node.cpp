@@ -1,6 +1,7 @@
 #include "kd_tree_node.hpp"
 
 namespace study {
+namespace detail {
   kd_tree_node::kd_tree_node(const BBox& bound, size_type depth)
   : bound_(bound),
     depth_(depth),
@@ -106,4 +107,5 @@ namespace study {
   {
     return kd_node_info(*this);
   }
-} //namespace study
+} // namespace detail
+} // namespace study

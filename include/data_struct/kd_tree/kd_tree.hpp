@@ -15,7 +15,7 @@ namespace study {
   {
   public:
     using value_type = T;
-    using node_type = kd_tree_node;
+    using node_type = detail::kd_tree_node;
     using NodeSplitter = utils::NodeSplitter<value_type>;
 
   public:

@@ -4,20 +4,28 @@
 #include "util_structs.hpp"
 
 namespace study {
-
   class kd_node_info;
+}
+
+namespace study {
+namespace detail { // don't use in client code
+  using kd_node_info = study::kd_node_info;
 
   class kd_tree_node final {
   public:
-    // TODO: move 5 rule responsibility to buff object inside (memory manager)
     kd_tree_node(const BBox& bound, size_type depth);
+    kd_tree_node(const kd_tree_node& other)            = delete; // copy ctor(unused, pointer copy only)
+    kd_tree_node(kd_tree_node&& other)                 = delete; // move ctor(unused, pointer copy only)
+    kd_tree_node& operator=(const kd_tree_node& other) = delete; // copy assign(unused, pointer copy assign only)
+    kd_tree_node& operator=(kd_tree_node&& other)      = delete; // move assign(unused, pointer copy assign only)
     ~kd_tree_node();
 
-    // WARN: can make obj uncosistible
+    // WARN: can dirupt obj invariant, and make obj inconsistent
     kd_tree_node* getLeft();
     kd_tree_node* getRight();
     const kd_tree_node* getLeft() const;
     const kd_tree_node* getRight() const;
+
     void setLeft(kd_tree_node* left);
     void setRight(kd_tree_node* right);
 
@@ -43,9 +51,15 @@ namespace study {
     kd_tree_node* left_;
     kd_tree_node* right_;
   };
+} // namespace detail
+} // namespace study
 
+namespace study {
   // proxy for output node info
   class kd_node_info {
+  private:
+    using kd_tree_node = detail::kd_tree_node;
+
   public:
     kd_node_info(const kd_tree_node& node) : ref(node) { }
 
@@ -57,5 +71,4 @@ namespace study {
   private:
     const kd_tree_node& ref;
   };
-
-} // namespace study
+} // namespace detail
