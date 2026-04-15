@@ -2,8 +2,7 @@ template <typename T>
 kd_tree<T>::kd_tree(const std::vector<value_type>& objs, NodeSplitter func)
 : objs_(objs),
   root_(nullptr),
-  size_(0),
-  use_multithread_(multithread)
+  size_(0)
 {
   size_type objs_size = objs.size();
   BBox common_bound = math::calcGroupBound(objs);
@@ -14,7 +13,7 @@ kd_tree<T>::kd_tree(const std::vector<value_type>& objs, NodeSplitter func)
 
   obj_used_.resize(objs_size, 0); // 0 - false
 
-  root_ = createTree(objs_size, common_bound, ids, func, 0);
+  root_ = createTreeImpl(objs_size, common_bound, ids, func, 0);
 }
 
 // TODO: rewrite in iterative form
@@ -80,14 +79,14 @@ kd_node_info kd_tree<T>::findNearestLeaf(const Point3f& point) const
 }
 
 template <typename T>
-void kd_tree<T>::findNearestObj(NearestInfo& info, const Point3f& point)
+NearestInfo kd_tree<T>::findNearestObj(const Point3f& point)
 {
   kd_node_info leaf_info = findNearestLeaf(point);
 
-  info = utils::findNearestObj(leaf, obj_used_, obj_used_ids_, objs_, point);
+  auto info = utils::findNearestObj(leaf_info, obj_used_, obj_used_ids_, objs_, point);
 
-  if (std::fabs(info.min_dist2 - 0.0f) >= eps2 && !math::canInscribeSphereInBBox(leaf->getBBox(), point, info.min_dist))
-    findNearestObjInRadius(info, point);
+  if (std::fabs(info.min_dist2 - 0.0f) >= eps2 && !math::canInscribeSphereInBBox(leaf_info.bound(), point, info.min_dist))
+    findNearestObjInRadius(*info, point);
 
   size_type obj_used_ids_size = obj_used_ids_.size();
 
@@ -95,6 +94,8 @@ void kd_tree<T>::findNearestObj(NearestInfo& info, const Point3f& point)
     obj_used_[obj_used_ids_[idx]] = 0; // 0 -> false
 
   obj_used_ids_.clear();
+
+  return *info;
 }
 
 template <typename T>

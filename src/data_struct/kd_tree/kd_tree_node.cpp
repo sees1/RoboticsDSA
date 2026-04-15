@@ -101,4 +101,9 @@ namespace study {
   {
     return obj_ids_.size();
   }
+
+  kd_tree_node::operator kd_node_info() const
+  {
+    return kd_node_info(*this);
+  }
 } //namespace study

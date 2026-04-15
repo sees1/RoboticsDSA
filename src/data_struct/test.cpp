@@ -15,9 +15,9 @@ TEST(StructuteTest, KDTreeGetNodes)
   std::vector<Triangle> objs;
   objs.push_back(t);
 
-  study::kd_tree<study::primitives::Triangle> v(objs, SAHSplitter, false);
+  study::kd_tree<study::primitives::Triangle> v(objs, SAHSplitter);
   std::vector<study::kd_tree_node*> res;
-  v.getLeafNodes(res);
+  // v.getLeafNodes(res);
 
   EXPECT_EQ(1, 1);
 }

@@ -29,7 +29,7 @@ namespace study {
     ~kd_tree();
 
     NearestInfo findNearestObj(const Point3f& point);
-    NearestInfo findNearestObjInRadius(const Point3f& point, float radius);
+    NearestInfo findNearestObjInRadius(const Point3f& point);
     kd_node_info findNearestLeaf(const Point3f& point) const;
 
     size_type size() const;
@@ -42,7 +42,7 @@ namespace study {
                               NodeSplitter func,
                               const size_type depth,
                               const size_type max_depth = 32);
-    void findNearestObjInRadiusImpl(NearestInfo& info, const node_type* node, const Point3f& point, float radius);
+    void findNearestObjInRadiusImpl(NearestInfo& info, const node_type* node, const Point3f& point);
 
   private:
     bool use_multithread_;
