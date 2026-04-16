@@ -1,7 +1,6 @@
 template <typename T>
 kd_tree<T>::kd_tree(const std::vector<value_type>& objs, NodeSplitter func)
 : objs_(objs),
-  root_(nullptr),
   size_(0)
 {
   size_type objs_size = objs.size();
@@ -13,7 +12,7 @@ kd_tree<T>::kd_tree(const std::vector<value_type>& objs, NodeSplitter func)
 
   obj_used_.resize(objs_size, 0); // 0 - false
 
-  root_ = createTreeImpl(objs_size, common_bound, ids, func, 0);
+  root_ = std::shared_ptr<node_type>(std::createTreeImpl(objs_size, common_bound, ids, func, 0));
 }
 
 template <typename T>
@@ -49,7 +48,7 @@ typename kd_tree<T>::node_type* kd_tree<T>::createTreeImpl(size_type& leafs_coun
 template <typename T>
 kd_node_info kd_tree<T>::findNearestLeaf(const Point3f& point) const
 {
-  node_type* node = root_;
+  std::shared_ptr<node_type> node = root_;
 
   while (node->getLeft() != nullptr && node->getRight() != nullptr)
   {
@@ -74,7 +73,7 @@ kd_node_info kd_tree<T>::findNearestLeaf(const Point3f& point) const
       node = node->getRight();
   }
 
-  return kd_node_info(node);
+  return kd_node_info(*node);
 }
 
 template <typename T>
@@ -112,7 +111,7 @@ size_type kd_tree<T>::size() const
 }
 
 template <typename T>
-void kd_tree<T>::findNearestObjInRadiusImpl(NearestInfo& info, const node_type* node, const Point3f& point)
+void kd_tree<T>::findNearestObjInRadiusImpl(NearestInfo& info, std::shared_ptr<node_type> node, const Point3f& point)
 {
   if (math::isBBoxIntersectSphere(node->getBBox(), point, info.min_dist))
   {
@@ -130,12 +129,4 @@ void kd_tree<T>::findNearestObjInRadiusImpl(NearestInfo& info, const node_type* 
     if (node->getRight() != nullptr)
       findNearestObjInRadiusImpl(info, node->getLeft(), point);
   }
-}
-
-template <typename T>
-kd_tree<T>::~kd_tree()
-{
-  // TODO: decline hand memory usage
-  if (root_ != nullptr)
-    delete root_;
 }

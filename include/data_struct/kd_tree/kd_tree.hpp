@@ -3,6 +3,7 @@
 #include <set>
 #include <cstdlib>
 #include <functional>
+#include <memory>
 
 #include "util_structs.hpp"
 #include "kd_tree_node.hpp"
@@ -26,7 +27,7 @@ namespace study {
     kd_tree(kd_tree<value_type>&& other)                             = delete; // move ctr
     kd_tree<value_type>& operator=(const kd_tree<value_type>& other) = delete; // copy assign
     kd_tree<value_type>& operator=(kd_tree<value_type>&& other)      = delete; // move assign
-    ~kd_tree();
+    ~kd_tree() = default;
 
     NearestInfo findNearestObj(const Point3f& point);
     NearestInfo findNearestObjInRadius(const Point3f& point);
@@ -51,7 +52,7 @@ namespace study {
 
     std::vector<value_type> objs_;
 
-    node_type* root_;
+    std::share_ptr<node_type> root_;
     size_type size_;
   };
 
