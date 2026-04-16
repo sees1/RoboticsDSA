@@ -8,3 +8,5 @@ typedef size_t size_type;
 // TODO: add double precision type usage opportunity
 typedef Eigen::Vector3f Point3f;
 typedef Eigen::Vector3d Point3d;
+
+constexpr size_type bins_count = 33;

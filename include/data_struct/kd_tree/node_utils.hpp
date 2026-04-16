@@ -6,32 +6,32 @@
 
 namespace study {
 namespace utils {
+  constexpr std::array<float, bins_count> getCoeffs()
+  {
+    std::array<float, bins_count> coeffs{};
+    for (size_type idx = 1; idx < bins_count; ++idx)
+      coeffs[idx] = static_cast<float>(idx) / bins_count;
+
+    return coeffs;
+  }
+
   // can't straight pass const std::vector<Primitives>& because don't have mechanic for type deduction in lambda, so use auto&& 
   auto SAHSplitter = [](const BBox& bound, auto&& objs, const std::vector<size_type>& objs_ids) -> std::optional<SplitInfo>
   {
-    // TODO: take out this as const (or constexpr calc)
-    size_type bins_count = 33;
-    float bins_count_f = 33.0f;
+    std::array<float, bins_count> coeffs = getCoeffs();
 
-    std::vector<float> coeffs(bins_count);
-    {
-      for (float idx = 1.0f; idx < bins_count_f; idx += 1.0f)
-        coeffs[idx] = idx / bins_count;
-    }
-
-    // TODO: change to array
-    std::array<std::vector<size_type>, 3> low_bin;
+    std::array<std::array<size_type, bins_count + 1>, 3> low_bin;
     for(auto& el : low_bin)
-      el.assign(bins_count + 1, 0);
-    std::array<std::vector<size_type>, 3> high_bin;
+      el.fill(0);
+    std::array<std::array<size_type, bins_count + 1>, 3> high_bin;
     for(auto& el : high_bin)
-      el.assign(bins_count + 1, 0);
+      el.fill(0);
 
     Eigen::Vector3f bound_len = bound.max - bound.min;
     if (bound_len(0) < eps || bound_len(1) < eps || bound_len(2) < eps)
       return std::nullopt;
 
-    Eigen::Vector3f bound_len_of_bin = bins_count_f * bound_len.cwiseInverse(); // cwiseInverse -> each el convert to 1/el
+    Eigen::Vector3f bound_len_of_bin = static_cast<float>(bins_count) * bound_len.cwiseInverse(); // cwiseInverse -> each el convert to 1/el
 
     size_type objs_ids_size = objs_ids.size();
 
@@ -217,7 +217,6 @@ namespace utils {
 
     for(size_type idx = 0; idx < objs_size; ++idx)
     {
-      // TODO: add getNode with id
       if (objs_used[node.id(idx)])
         continue;
 
