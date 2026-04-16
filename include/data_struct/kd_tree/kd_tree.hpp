@@ -39,7 +39,7 @@ namespace study {
     // recursive function
     node_type* createTreeImpl(size_type& leafs_count,
                               const BBox& bbox,
-                              std::vector<size_type>& obj_ids,
+                              const std::vector<size_type>& obj_ids,
                               NodeSplitter func,
                               const size_type depth,
                               const size_type max_depth = 32);

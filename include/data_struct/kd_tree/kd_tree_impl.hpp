@@ -18,7 +18,7 @@ kd_tree<T>::kd_tree(const std::vector<value_type>& objs, NodeSplitter func)
 template <typename T>
 typename kd_tree<T>::node_type* kd_tree<T>::createTreeImpl(size_type& leafs_count,
                                                            const BBox& bbox,
-                                                           std::vector<size_type>& obj_ids,
+                                                           const std::vector<size_type>& obj_ids,
                                                            NodeSplitter func,
                                                            const size_type depth,
                                                            const size_type max_depth)

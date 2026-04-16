@@ -59,11 +59,8 @@ namespace detail {
 
   void kd_tree_node::setData(const std::vector<size_type>& obj_ids)
   {
-    // TODO: find out needed we obj_ids vector or not. if so don't clear, another case - clear
     if (obj_ids_.empty())
-    {
       obj_ids_.resize(obj_ids.size());
-    }
     else
     {
       obj_ids_.clear();
