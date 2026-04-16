@@ -43,7 +43,7 @@ namespace study {
                               NodeSplitter func,
                               const size_type depth,
                               const size_type max_depth = 32);
-    void findNearestObjInRadiusImpl(NearestInfo& info, const node_type* node, const Point3f& point);
+    void findNearestObjInRadiusImpl(NearestInfo& info, std::shared_ptr<node_type> node, const Point3f& point);
 
   private:
     bool use_multithread_;
@@ -52,7 +52,7 @@ namespace study {
 
     std::vector<value_type> objs_;
 
-    std::share_ptr<node_type> root_;
+    std::shared_ptr<node_type> root_;
     size_type size_;
   };
 

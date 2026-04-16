@@ -12,7 +12,7 @@ kd_tree<T>::kd_tree(const std::vector<value_type>& objs, NodeSplitter func)
 
   obj_used_.resize(objs_size, 0); // 0 - false
 
-  root_ = std::shared_ptr<node_type>(std::createTreeImpl(objs_size, common_bound, ids, func, 0));
+  root_ = std::shared_ptr<node_type>(createTreeImpl(objs_size, common_bound, ids, func, 0));
 }
 
 template <typename T>
