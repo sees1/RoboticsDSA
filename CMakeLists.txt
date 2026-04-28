@@ -20,3 +20,12 @@ target_link_libraries(data_struct   PUBLIC kd_tree
                                     PRIVATE GTest::gtest_main)
 
 # ALGORITHMS
+
+add_library(data_association ${CMAKE_CURRENT_SOURCE_DIR}/src/algorithms/data_association/math.cpp)
+target_include_directories(data_association PUBLIC include/data_association)
+target_link_libraries(data_association PUBLIC Eigen3::Eigen)
+
+add_executable(algorithms
+${PROJECT_SOURCE_DIR}/src/algorithms/test.cpp)
+target_link_libraries(algorithms   PUBLIC data_association
+                                   PRIVATE GTest::gtest_main)

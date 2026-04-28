@@ -1,11 +1,9 @@
-#include "kd_tree.hpp"
+#include "jcbb.hpp"
 #include <gtest/gtest.h>
 
-TEST(StructuteTest, KDTreeGetNodes)
+TEST(StructuteTest, JCBB)
 {
-  using namespace study::utils;
-  using namespace study::math;
-  using namespace study::primitives;
+  using namespace study;
 
   Point3f p1(2.0f, 2.0f, 0.0f);
   Point3f p2(3.0f, 4.5f, 0.0f);
