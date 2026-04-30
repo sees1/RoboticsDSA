@@ -1,6 +1,15 @@
 PROJECT(DSA)
 CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 
+# ros-specific
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(ament_index_cpp REQUIRED)
+
+# common-packages
 find_package(GTest REQUIRED)
 find_package(Eigen3 REQUIRED)
 
