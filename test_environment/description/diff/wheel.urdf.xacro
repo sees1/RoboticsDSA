@@ -18,28 +18,28 @@
     <xacro:if value="${side == 'fl'}">
       <xacro:property name="x" value="${wheel_separation_x/2.0}" />
       <xacro:property name="y" value="${wheel_separation_y/2.0}" />
-      <xacro:property name="mesh" value="package://rosbot_description/meshes/rosbot/${wheel_file}_l.glb" />
+      <xacro:property name="mesh" value="file://$(find test_environment)/meshes/diff/${wheel_file}_l.dae" />
       <xacro:property name="visual_rotation" value="${pi/2} 0.0 0.0" />
       <xacro:property name="fdir" value="1.0 -1.0 0.0" />
     </xacro:if>
     <xacro:if value="${side == 'fr'}">
       <xacro:property name="x" value="${wheel_separation_x/2.0}" />
       <xacro:property name="y" value="${-wheel_separation_y/2.0}" />
-      <xacro:property name="mesh" value="package://rosbot_description/meshes/rosbot/${wheel_file}_r.glb" />
+      <xacro:property name="mesh" value="file://$(find test_environment)/meshes/diff/${wheel_file}_r.dae" />
       <xacro:property name="visual_rotation" value="${pi/2} 0.0 0.0" />
       <xacro:property name="fdir" value="1.0 1.0 0.0" />
     </xacro:if>
     <xacro:if value="${side == 'rl'}">
       <xacro:property name="x" value="${-wheel_separation_x/2.0}" />
       <xacro:property name="y" value="${wheel_separation_y/2.0}" />
-      <xacro:property name="mesh" value="package://rosbot_description/meshes/rosbot/${wheel_file}_l.glb" />
+      <xacro:property name="mesh" value="file://$(find test_environment)/meshes/diff/${wheel_file}_l.dae" />
       <xacro:property name="visual_rotation" value="${pi/2} 0.0 0.0" />
       <xacro:property name="fdir" value="1.0 1.0 0.0" />
     </xacro:if>
     <xacro:if value="${side == 'rr'}">
       <xacro:property name="x" value="${-wheel_separation_x/2.0}" />
       <xacro:property name="y" value="${-wheel_separation_y/2.0}" />
-      <xacro:property name="mesh" value="package://rosbot_description/meshes/rosbot/${wheel_file}_r.glb" />
+      <xacro:property name="mesh" value="file://$(find test_environment)/meshes/diff/${wheel_file}_r.dae" />
       <xacro:property name="visual_rotation" value="${pi/2} 0.0 0.0" />
       <xacro:property name="fdir" value="1.0 -1.0 0.0" />
     </xacro:if>

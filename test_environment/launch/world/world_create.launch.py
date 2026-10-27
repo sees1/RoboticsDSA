@@ -15,6 +15,7 @@ ARGUMENTS = [
     DeclareLaunchArgument('world', default_value='mars3',
                           description='World model name'),
     DeclareLaunchArgument('model', default_value='diff',
+                          choices=['diff', 'rocker_bogie'],
                           description='Model to use for simulation'),
     DeclareLaunchArgument('spawn_robot', default_value='True',
                           choices=['True', 'False'],
@@ -48,7 +49,7 @@ def evaluate_spawn(context, *args, **kwargs):
   #gazebo initialization
   gazebo = IncludeLaunchDescription(PythonLaunchDescriptionSource(gz_launch_path),
                                     launch_arguments={'world': gazebo_world_file,
-                                                      'extra_gazebo_args': '--ros-args --params-file ' + gazebo_params_file}.items()
+                                                      'params_file': gazebo_params_file}.items()
   )
 
   spawn_entity = Node(package='gazebo_ros',
@@ -61,9 +62,7 @@ def evaluate_spawn(context, *args, **kwargs):
                       condition=IfCondition(PythonExpression([spawn_robot, " == True "]))
   )
 
-  use_sim_time_param = SetParameter(name='use_sim_time', value=True)
-
-  return [robot_state, gazebo, spawn_entity, use_sim_time_param]
+  return [robot_state, gazebo, spawn_entity]
 
 def generate_launch_description():
 

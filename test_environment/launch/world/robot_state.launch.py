@@ -5,6 +5,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration, Command
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 from ament_index_python.packages import get_package_share_directory
 from launch.actions import OpaqueFunction
 
@@ -19,7 +20,7 @@ def evaluate_spawn(context, *args, **kwargs):
   model = LaunchConfiguration('model').perform(context)
 
   # xacro file path
-  xacro_file_path = os.path.join(get_package_share_directory(current_package_name), 'description', model + '.urdf.xacro')
+  xacro_file_path = os.path.join(get_package_share_directory(current_package_name), 'description', model, model + '.urdf.xacro')
 
   # xacro -> xml convertion
   robot_description_config = Command(['xacro ', xacro_file_path])

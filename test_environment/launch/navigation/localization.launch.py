@@ -13,12 +13,16 @@ ARGUMENTS = [
     DeclareLaunchArgument('pose_estimator', default_value="'odometry'",
                           choices = ["'eagleye'", "'rgbd_odometry'", "'odometry'"],
                           description='Pose estimators for eureka robot'),
+    DeclareLaunchArgument('model', default_value='diff',
+                          choices=['diff', 'rocker_bogie'],
+                          description='Model to use for simulation'),
 ]
 
 def evaluate_spawn(context, *args, **kwargs):
   current_package_name = 'test_environment'
   # eagleye_package_name = 'eagleye_rt'
 
+  model = LaunchConfiguration('model').perform(context)
   pose_estimator = LaunchConfiguration('pose_estimator').perform(context)
 
 
@@ -30,11 +34,15 @@ def evaluate_spawn(context, *args, **kwargs):
   # eagleye_config_path = os.path.join(get_package_share_directory(current_package_name), 'config', 'localization', 'eagleye.yaml')
 
   # launch's path
-  # rocker_bogie_launch_path = os.path.join(get_package_share_directory(current_package_name), 'launch', 'controller', 'rocker_bogie.launch.py')
+  rocker_bogie_cont_launch_path = os.path.join(get_package_share_directory(current_package_name), 'launch', 'controller', 'rocker_bogie.launch.py')
+  diff_cont_launch_path = os.path.join(get_package_share_directory(current_package_name), 'launch', 'controller', 'diff.launch.py')
   # eagleye_launch_path = os.path.join(get_package_share_directory(eagleye_package_name), 'launch', 'eagleye_rt.launch.xml')
 
   # intertial, kinematic: odometry publisher (required)(as pose estimator)
-  # controller = IncludeLaunchDescription(PythonLaunchDescriptionSource(rocker_bogie_launch_path))
+  rocker_bogie_controller = IncludeLaunchDescription(PythonLaunchDescriptionSource(rocker_bogie_cont_launch_path),
+                                                     condition = IfCondition(PythonExpression([repr(model), " == 'rocker_bogie'"])))
+  diff_cont_controller = IncludeLaunchDescription(PythonLaunchDescriptionSource(diff_cont_launch_path),
+                                                  condition = IfCondition(PythonExpression([repr(model), " == 'diff'"])))
   
   # inertial: pose/twist publisher (optional)(as pose/twist estimator)
   # eagleye_estimator = IncludeLaunchDescription(
@@ -99,7 +107,8 @@ def evaluate_spawn(context, *args, **kwargs):
   )
 
   return [rgbd_odometry,
-          # controller,
+          rocker_bogie_controller,
+          diff_cont_controller,
           ekf_el_classico,
           ekf_eagleye,
           ekf_visual]

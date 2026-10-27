@@ -20,7 +20,7 @@ rtabmap:
     odom_tf_linear_variance: 0.001
     odom_sensor_sync: False
     wait_for_transform: 0.2
-    database_path: '~/.ros/rtabmap.db'
+    database_path: '~/.ros/test_environment_rtabmap.db'
     approx_sync: False
     config_path: ''
     topic_queue_size: 10

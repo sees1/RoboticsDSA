@@ -1,15 +1,16 @@
 <?xml version='1.0'?>
-<robot name="diffbot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+<robot name="diff" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <material name="blue"><color rgba="0 0 1 1" /></material>
   <!-- PROPERTIES -->
   <xacro:property name="wheel_radius" value="0.0425" />
 
   <!-- INCLUDE ROBOT MACRO -->
-  <xacro:include filename="$(find test_environment)/diff/ros2_control.urdf.xacro"/>
-  <xacro:include filename="$(find test_environment)/diff/body.urdf.xacro"/>
-  <xacro:include filename="$(find test_environment)/diff/wheel.urdf.xacro"/>
+  <xacro:include filename="ros2_control.urdf.xacro"/>
+  <xacro:include filename="body.urdf.xacro"/>
+  <xacro:include filename="wheel.urdf.xacro"/>
 
   <!-- BODY -->
-  <xacro:body wheel_radius="0.06"/>
+  <xacro:body wheel_radius="${wheel_radius}"/>
 
   <!-- WHEEL -->
   <xacro:wheel wheel_radius="${wheel_radius}" side="fl"/>

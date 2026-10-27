@@ -1,11 +1,11 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.8)
-PROJECT(test_environment)
+cmake_minimum_required(VERSION 3.5)
+project(test_environment)
 
-# ros-specific
+# find dependencies
 find_package(ament_cmake REQUIRED)
 
-install(DIRECTORY
-  launch
+install(
+  DIRECTORY config description launch meshes models rviz worlds
   DESTINATION share/${PROJECT_NAME}
 )
 

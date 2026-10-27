@@ -4,6 +4,9 @@
   <xacro:macro name="controller" params="config_file">
     <gazebo>
       <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
+          <ros>
+            <remapping>/diffbot_base_controller/cmd_vel_unstamped:=/cmd_vel</remapping>
+          </ros>
           <parameters>$(find test_environment)/config/controllers/${config_file}.yaml</parameters>
       </plugin>
     </gazebo>
@@ -14,7 +17,7 @@
 
     <ros2_control name="${ns}${name}" type="system">
       <hardware>
-        <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+        <plugin>gazebo_ros2_control/GazeboSystem</plugin>
       </hardware>
 
       <joint name="fl_wheel_joint">
@@ -38,18 +41,6 @@
         <state_interface name="velocity" />
       </joint>
 
-      <sensor name="${ns}imu">
-        <state_interface name="orientation.x" />
-        <state_interface name="orientation.y" />
-        <state_interface name="orientation.z" />
-        <state_interface name="orientation.w" />
-        <state_interface name="angular_velocity.x" />
-        <state_interface name="angular_velocity.y" />
-        <state_interface name="angular_velocity.z" />
-        <state_interface name="linear_acceleration.x" />
-        <state_interface name="linear_acceleration.y" />
-        <state_interface name="linear_acceleration.z" />
-      </sensor>
     </ros2_control>
   </xacro:macro>
 

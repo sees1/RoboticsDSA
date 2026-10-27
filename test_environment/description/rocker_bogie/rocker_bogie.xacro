@@ -1,17 +1,17 @@
 <?xml version="1.0" ?>
 
-<robot name="rocker-bogie" xmlns:xacro="http://www.ros.org/wiki/xacro">
+<robot name="rocker_bogie" xmlns:xacro="http://www.ros.org/wiki/xacro">
     
     <!-- Include macros -->
     <xacro:include filename="$(find test_environment)/description/common/materials.xacro"/>
     <xacro:include filename="$(find test_environment)/description/common/inertials.xacro"/>
-    <xacro:include filename="$(find test_environment)/description/rocker-bogie/bases/body.urdf.xacro" />
-    <xacro:include filename="$(find test_environment)/description/rocker-bogie/bases/differential.urdf.xacro" />
-    <xacro:include filename="$(find test_environment)/description/rocker-bogie/bases/turnbuckle.urdf.xacro" />
-    <xacro:include filename="$(find test_environment)/description/rocker-bogie/bases/rocker.urdf.xacro" />
-    <xacro:include filename="$(find test_environment)/description/rocker-bogie/bases/bogie.urdf.xacro" />
-    <xacro:include filename="$(find test_environment)/description/rocker-bogie/wheels/wheel.urdf.xacro" />
-    <xacro:include filename="$(find test_environment)/description/rocker-bogie/wheels/corner.urdf.xacro" />
+    <xacro:include filename="$(find test_environment)/description/rocker_bogie/bases/body.urdf.xacro" />
+    <xacro:include filename="$(find test_environment)/description/rocker_bogie/bases/differential.urdf.xacro" />
+    <xacro:include filename="$(find test_environment)/description/rocker_bogie/bases/turnbuckle.urdf.xacro" />
+    <xacro:include filename="$(find test_environment)/description/rocker_bogie/bases/rocker.urdf.xacro" />
+    <xacro:include filename="$(find test_environment)/description/rocker_bogie/bases/bogie.urdf.xacro" />
+    <xacro:include filename="$(find test_environment)/description/rocker_bogie/wheels/wheel.urdf.xacro" />
+    <xacro:include filename="$(find test_environment)/description/rocker_bogie/wheels/corner.urdf.xacro" />
     <xacro:include filename="$(find test_environment)/description/common/sensors/all_sensors.urdf.xacro" />
 
 

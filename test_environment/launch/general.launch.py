@@ -11,7 +11,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node, SetParameter
 
 ARGUMENTS = [
-    DeclareLaunchArgument('world', default_value='mars3',
+    DeclareLaunchArgument('world', default_value='level1',
                           description='World model name'),
     DeclareLaunchArgument('spawn_robot', default_value='True',
                           choices=['True', 'False'],
@@ -23,7 +23,11 @@ ARGUMENTS = [
                           choices = ["'eagleye'", "'rgbd_odometry'", "'odometry'"],
                           description='Pose estimators for eureka robot'),
     DeclareLaunchArgument('model', default_value='diff',
-                          description='Model to use for simulation')
+                          choices=['diff', 'rocker_bogie'],
+                          description='Model to use for simulation'),
+    DeclareLaunchArgument('slam_type', default_value='toolbox',
+                          choices = ['toolbox', 'rtabmap'],
+                          description='slam solver for robot')
 ]
 
 
@@ -36,6 +40,7 @@ def generate_launch_description():
   spawn_robot = LaunchConfiguration('spawn_robot')
   internal_nav = LaunchConfiguration('internal_nav')
   pose_estimator = LaunchConfiguration('pose_estimator')
+  slam_type = LaunchConfiguration('slam_type')
 
   # launch's path
   world_launch_path = os.path.join(get_package_share_directory(package_name), 'launch', 'world', 'world_create.launch.py')
@@ -56,12 +61,14 @@ def generate_launch_description():
 
   # dynamic localization initialization
   localization = IncludeLaunchDescription(PythonLaunchDescriptionSource(localization_launch_path),
-                                          launch_arguments={'pose_estimator': pose_estimator}.items(),
+                                          launch_arguments={'pose_estimator': pose_estimator,
+                                                            'model': model_type}.items(),
                                           condition=IfCondition(internal_nav)
   )
 
   # mapping initialization
   navigation = IncludeLaunchDescription(PythonLaunchDescriptionSource(navigation_launch_path),
+                                        launch_arguments={'slam_type': slam_type}.items(),
                                         condition=IfCondition(internal_nav)
   )
 
@@ -81,9 +88,9 @@ def generate_launch_description():
   use_sim_time_param = SetParameter(name='use_sim_time', value=True)
 
   ld = LaunchDescription(ARGUMENTS)
+  ld.add_action(use_sim_time_param)
   ld.add_action(world)
   ld.add_action(localization)
   ld.add_action(navigation)
   ld.add_action(rviz)
-  ld.add_action(use_sim_time_param)
   return ld
