@@ -1,0 +1,1 @@
+test_environment/config/localization/ORBvoc.txt filter=lfs diff=lfs merge=lfs -text

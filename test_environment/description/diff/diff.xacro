@@ -1,0 +1,23 @@
+<?xml version='1.0'?>
+<robot name="diffbot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <!-- PROPERTIES -->
+  <xacro:property name="wheel_radius" value="0.0425" />
+
+  <!-- INCLUDE ROBOT MACRO -->
+  <xacro:include filename="$(find test_environment)/diff/ros2_control.urdf.xacro"/>
+  <xacro:include filename="$(find test_environment)/diff/body.urdf.xacro"/>
+  <xacro:include filename="$(find test_environment)/diff/wheel.urdf.xacro"/>
+
+  <!-- BODY -->
+  <xacro:body wheel_radius="0.06"/>
+
+  <!-- WHEEL -->
+  <xacro:wheel wheel_radius="${wheel_radius}" side="fl"/>
+  <xacro:wheel wheel_radius="${wheel_radius}" side="fr"/>
+  <xacro:wheel wheel_radius="${wheel_radius}" side="rl"/>
+  <xacro:wheel wheel_radius="${wheel_radius}" side="rr"/>
+
+  <!-- GAZEBO PLUGINS -->
+  <xacro:gz_diffbot_system/>
+  <xacro:controller config_file="diff" />
+</robot>

@@ -1,0 +1,39 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 10
+    # use_sim_time: true
+
+    diffbot_base_controller:
+      type: diff_drive_controller/DiffDriveController
+
+    joint_broad:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+diffbot_base_controller:
+  ros__parameters:
+    publish_rate: 20.0
+    
+    left_wheels_names: ['fl_wheel_joint', 'rl_wheel_joint']
+    right_wheels_names: ['fr_whee_joint', 'rr_wheel_joint']
+
+    wheel_separation: 0.2
+    wheels_radius: 0.06
+    
+    wheel_separation_multiplier: 1.0
+    left_wheel_radius_multiplier: 1.0
+    right_wheel_radius_multiplier: 1.0
+
+    publish_limited_velocity: true
+
+    odom_frame_id: odom
+    base_frame_id: body_frame
+
+    velocity_rolling_window_size: 10
+    pose_covariance_diagonal: [0.0, 7.0, 14.0, 21.0, 28.0, 35.0]
+    twist_covariance_diagonal: [0.0, 7.0, 14.0, 21.0, 28.0, 35.0]
+    
+    open_loop: true
+    enable_odom_tf: false
+    
+    position_feedback: true
+    use_stamped_vel: false

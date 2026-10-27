@@ -1,0 +1,36 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 10
+    # use_sim_time: true
+
+    rocker_bogie_cont:
+      type: eureka_ackermann_controller/EurekaAckermannController
+
+    joint_broad:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+rocker_bogie_cont:
+  ros__parameters:
+
+    publish_rate: 10.0
+
+    half_wheelbase: 0.26
+    wheels_radius: 0.06
+    wheel_track: 0.31
+    reference_timeout: 2.0
+    front_steer_mech_names: ['front_right_corner_joint', 'front_left_corner_joint']
+    rear_steer_mech_names: ['back_right_corner_joint', 'back_left_corner_joint']
+    rear_wheels_names: ['back_right_wheel_joint', 'back_left_wheel_joint']
+    middle_wheels_names: ['mid_right_wheel_joint', 'mid_left_wheel_joint']
+    front_wheels_names: ['front_right_wheel_joint', 'front_left_wheel_joint']
+    open_loop: true
+    enable_odom_tf: false
+    velocity_rolling_window_size: 10
+    twist_covariance_diagonal: [0.0, 7.0, 14.0, 21.0, 28.0, 35.0]
+    pose_covariance_diagonal: [0.0, 7.0, 14.0, 21.0, 28.0, 35.0]
+    position_feedback: true
+    use_stamped_vel: false
+
+joint_broad:
+  ros__parameters:
+    extra_joints: [left_bogie_joint, right_bogie_joint, left_rocker_joint, right_rocker_joint, diff_brace_joint]

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
+
+  <xacro:macro name="controller" params="config_file">
+    <gazebo>
+      <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
+          <parameters>$(find test_environment)/config/controllers/${config_file}.yaml</parameters>
+      </plugin>
+    </gazebo>
+  </xacro:macro>
+
+  <xacro:macro name="gz_diffbot_system" params="name:='diffbot_system' namespace:=''" >
+    <xacro:property name="ns" value="${namespace + '/' if namespace != '' else ''}" />
+
+    <ros2_control name="${ns}${name}" type="system">
+      <hardware>
+        <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+      </hardware>
+
+      <joint name="fl_wheel_joint">
+        <command_interface name="velocity" />
+        <state_interface name="position" />
+        <state_interface name="velocity" />
+      </joint>
+      <joint name="fr_wheel_joint">
+        <command_interface name="velocity" />
+        <state_interface name="position" />
+        <state_interface name="velocity" />
+      </joint>
+      <joint name="rl_wheel_joint">
+        <command_interface name="velocity" />
+        <state_interface name="position" />
+        <state_interface name="velocity" />
+      </joint>
+      <joint name="rr_wheel_joint">
+        <command_interface name="velocity" />
+        <state_interface name="position" />
+        <state_interface name="velocity" />
+      </joint>
+
+      <sensor name="${ns}imu">
+        <state_interface name="orientation.x" />
+        <state_interface name="orientation.y" />
+        <state_interface name="orientation.z" />
+        <state_interface name="orientation.w" />
+        <state_interface name="angular_velocity.x" />
+        <state_interface name="angular_velocity.y" />
+        <state_interface name="angular_velocity.z" />
+        <state_interface name="linear_acceleration.x" />
+        <state_interface name="linear_acceleration.y" />
+        <state_interface name="linear_acceleration.z" />
+      </sensor>
+    </ros2_control>
+  </xacro:macro>
+
+</robot>
