@@ -1,121 +1,91 @@
 import os
 
 from ament_index_python.packages import get_package_share_directory
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, OpaqueFunction
-from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch_xml.launch_description_sources import XMLLaunchDescriptionSource
-from launch_ros.actions import Node
-from launch.conditions import IfCondition
-from launch.substitutions import LaunchConfiguration, PythonExpression
+
 from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import LoadComposableNodes
+from launch_ros.actions import Node
+from launch_ros.descriptions import ComposableNode, ParameterFile
+from nav2_common.launch import RewrittenYaml
+
+current_package_share = get_package_share_directory('test_environment')
 
 ARGUMENTS = [
-    DeclareLaunchArgument('pose_estimator', default_value="'odometry'",
-                          choices = ["'eagleye'", "'rgbd_odometry'", "'odometry'"],
-                          description='Pose estimators for eureka robot'),
-    DeclareLaunchArgument('model', default_value='diff',
-                          choices=['diff', 'rocker_bogie'],
-                          description='Model to use for simulation'),
+  DeclareLaunchArgument('params_file', default_value=os.path.join(current_package_share, 'config', 'nav.yaml'),
+    description='Full path to the ROS2 parameters file to use for all launched nodes'),
+  DeclareLaunchArgument('costmap_file', default_value=os.path.join(current_package_share, 'maps', 'level1.yaml'),
+    description='Full path to the ROS2 costmap .yaml file'),
 ]
 
 def evaluate_spawn(context, *args, **kwargs):
-  current_package_name = 'test_environment'
-  # eagleye_package_name = 'eagleye_rt'
+  params_file = LaunchConfiguration('params_file')
+  map_yaml_file = LaunchConfiguration('costmap_file')
+  lifecycle_nodes = ['map_server', 'amcl']
 
-  model = LaunchConfiguration('model').perform(context)
-  pose_estimator = LaunchConfiguration('pose_estimator').perform(context)
+  remappings = [('/tf', 'tf'),
+                ('/tf_static', 'tf_static')]
 
+  param_substitutions = {
+    'yaml_filename': map_yaml_file
+  }
 
-  # config's path
-  ekf_el_classico_config_path = os.path.join(get_package_share_directory(current_package_name), 'config', 'localization', 'ekf_el_classico.yaml')
-  ekf_eagleye_config_path = os.path.join(get_package_share_directory(current_package_name), 'config', 'localization', 'ekf_eagleye_based.yaml')
-  ekf_vis_odom_config_path = os.path.join(get_package_share_directory(current_package_name), 'config', 'localization', 'ekf_vis_odom_based.yaml')
-  rgbd_config_path = os.path.join(get_package_share_directory(current_package_name), 'config', 'localization', 'rgbd_odometry.yaml')
-  # eagleye_config_path = os.path.join(get_package_share_directory(current_package_name), 'config', 'localization', 'eagleye.yaml')
+  configured_params = ParameterFile(
+    RewrittenYaml(
+        source_file=params_file,
+        root_key='',
+        param_rewrites=param_substitutions,
+        convert_types=True),
+    allow_substs=True
+  )
 
-  # launch's path
-  rocker_bogie_cont_launch_path = os.path.join(get_package_share_directory(current_package_name), 'launch', 'controller', 'rocker_bogie.launch.py')
-  diff_cont_launch_path = os.path.join(get_package_share_directory(current_package_name), 'launch', 'controller', 'diff.launch.py')
-  # eagleye_launch_path = os.path.join(get_package_share_directory(eagleye_package_name), 'launch', 'eagleye_rt.launch.xml')
-
-  # intertial, kinematic: odometry publisher (required)(as pose estimator)
-  rocker_bogie_controller = IncludeLaunchDescription(PythonLaunchDescriptionSource(rocker_bogie_cont_launch_path),
-                                                     condition = IfCondition(PythonExpression([repr(model), " == 'rocker_bogie'"])))
-  diff_cont_controller = IncludeLaunchDescription(PythonLaunchDescriptionSource(diff_cont_launch_path),
-                                                  condition = IfCondition(PythonExpression([repr(model), " == 'diff'"])))
-  
-  # inertial: pose/twist publisher (optional)(as pose/twist estimator)
-  # eagleye_estimator = IncludeLaunchDescription(
-  #                         XMLLaunchDescriptionSource(eagleye_launch_path),
-  #                         launch_arguments={'config_path': eagleye_config_path}.items(),
-  #                         condition = IfCondition(PythonExpression([pose_estimator, " == 'eagleye'"]))
-  # )
-
-  # visual: odometry publisher (optional)(as pose/twist estimator)
-  rgbd_odometry = Node(
-    package="rtabmap_odom",
-    executable="rgbd_odometry",
-    name="rgbd_odometry",
-    output="log",
-    parameters=[rgbd_config_path],
-    remappings=[
-        ("rgb/image", "/camera/image_raw"),
-        ("rgb/camera_info", "/camera/camera_info"),
-        ("depth/image", "/camera/depth/image_raw"),
-        ("imu", "/imu"),
-        ("odom", "/odom_rgbd")
+  map_odom_transformation = Node(
+    package='tf2_ros',
+    executable='static_transform_publisher',
+    name='base_to_camera_tf',
+    arguments=[
+        '--x', '0.0',
+        '--y', '0.0',
+        '--z', '0.0',
+        '--roll', '0.0',
+        '--pitch', '0.0',
+        '--yaw', '0.0',
+        '--frame-id', 'map',
+        '--child-frame-id', 'odom'
     ],
-    arguments=["--ros-args", "--log-level", "warn"],
-    condition = IfCondition(PythonExpression([pose_estimator, " == 'rgbd_odometry'"]))
+    output='screen'
   )
 
-  # high speed = around 60 kmph
-  # medium speed = around 5 kmph
-  # low speed = around 0.5 kmph
-
-  # pose and twist fusion (classic odometry + imu) (any speed - low-medium precision)
-  ekf_el_classico = Node(
-    package='robot_localization',
-    executable='ekf_node',
-    name='ekf_filter_node',
-    output='screen',
-    arguments=["--ros-args", "--log-level", "info"],
-    parameters=[ekf_el_classico_config_path],
-    condition = IfCondition(PythonExpression([pose_estimator, " == 'odometry'"]))
+  load_composable_nodes = LoadComposableNodes(
+    target_container='nav2_container',
+    composable_node_descriptions=[
+      ComposableNode(
+          package='nav2_map_server',
+          plugin='nav2_map_server::MapServer',
+          name='map_server',
+          parameters=[configured_params],
+          remappings=remappings),
+      ComposableNode(
+          package='nav2_amcl',
+          plugin='nav2_amcl::AmclNode',
+          name='amcl',
+          parameters=[configured_params],
+          remappings=remappings),
+      ComposableNode(
+          package='nav2_lifecycle_manager',
+          plugin='nav2_lifecycle_manager::LifecycleManager',
+          name='lifecycle_manager_localization',
+          parameters=[{'use_sim_time': 'true',
+                        'autostart': 'true',
+                        'node_names': lifecycle_nodes}]),
+    ],
   )
 
-  # pose and twist fusion (eagleye twist + eagleye pose + imu) (high speed - high-medium precision)
-  ekf_eagleye = Node(
-    package='robot_localization',
-    executable='ekf_node',
-    name='ekf_filter_node',
-    output='screen',
-    arguments=["--ros-args", "--log-level", "info"],
-    parameters=[ekf_eagleye_config_path],
-    condition = IfCondition(PythonExpression([pose_estimator, " == 'eagleye'"]))
-  )
-
-  # pose and twist fusion (visual pose + imu) (low speed - high precision or high speed - low precision)
-  ekf_visual = Node(
-    package='robot_localization',
-    executable='ekf_node',
-    name='ekf_filter_node',
-    output='screen',
-    arguments=["--ros-args", "--log-level", "info"],
-    parameters=[ekf_vis_odom_config_path],
-    condition = IfCondition(PythonExpression([pose_estimator, " == 'rgbd_odometry'"]))
-  )
-
-  return [rgbd_odometry,
-          rocker_bogie_controller,
-          diff_cont_controller,
-          ekf_el_classico,
-          ekf_eagleye,
-          ekf_visual]
+  return [map_odom_transformation, load_composable_nodes]
 
 
 def generate_launch_description():
-
   ld = LaunchDescription(ARGUMENTS)
   ld.add_action(OpaqueFunction(function=evaluate_spawn))
   return ld

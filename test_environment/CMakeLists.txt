@@ -5,7 +5,7 @@ project(test_environment)
 find_package(ament_cmake REQUIRED)
 
 install(
-  DIRECTORY config description launch meshes models rviz worlds
+  DIRECTORY config description launch meshes models rviz worlds maps
   DESTINATION share/${PROJECT_NAME}
 )
 

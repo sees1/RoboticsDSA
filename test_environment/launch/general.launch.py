@@ -20,14 +20,17 @@ ARGUMENTS = [
                           choices=['True', 'False'],
                           description='Internal navigation'),
     DeclareLaunchArgument('pose_estimator', default_value="'odometry'",
-                          choices = ["'eagleye'", "'rgbd_odometry'", "'odometry'"],
+                          choices = ["'rgbd_odometry'", "'odometry'"],
                           description='Pose estimators for eureka robot'),
     DeclareLaunchArgument('model', default_value='diff',
                           choices=['diff', 'rocker_bogie'],
                           description='Model to use for simulation'),
     DeclareLaunchArgument('slam_type', default_value='toolbox',
                           choices = ['toolbox', 'rtabmap'],
-                          description='slam solver for robot')
+                          description='slam solver for robot'),
+    DeclareLaunchArgument('mode', default_value='localization',
+                          choices=['localization', 'mapping'],
+                          description='work mode for navigation')
 ]
 
 
@@ -44,8 +47,7 @@ def generate_launch_description():
 
   # launch's path
   world_launch_path = os.path.join(get_package_share_directory(package_name), 'launch', 'world', 'world_create.launch.py')
-  localization_launch_path = os.path.join(get_package_share_directory(package_name), 'launch', 'navigation', 'localization.launch.py')
-  navigation_launch_path = os.path.join(get_package_share_directory(package_name), 'launch', 'navigation', 'navigation.launch.py')
+  navigation_launch_path = os.path.join(get_package_share_directory(package_name), 'launch', 'navigation', 'bringup.launch.py')
 
   # rviz config
   rviz2_config = PathJoinSubstitution([get_package_share_directory(package_name), 'rviz', 'common.rviz'])
@@ -59,17 +61,13 @@ def generate_launch_description():
                                                      'spawn_robot': spawn_robot}.items()
   )
 
-  # dynamic localization initialization
-  localization = IncludeLaunchDescription(PythonLaunchDescriptionSource(localization_launch_path),
-                                          launch_arguments={'pose_estimator': pose_estimator,
-                                                            'model': model_type}.items(),
-                                          condition=IfCondition(internal_nav)
-  )
-
-  # mapping initialization
-  navigation = IncludeLaunchDescription(PythonLaunchDescriptionSource(navigation_launch_path),
-                                        launch_arguments={'slam_type': slam_type}.items(),
-                                        condition=IfCondition(internal_nav)
+  # navigation bringup
+   navigation = IncludeLaunchDescription(PythonLaunchDescriptionSource(navigation_launch_path),
+                                 launch_arguments={'pose_estimator': pose_estimator,
+                                                   'model': model_type,
+                                                   'mode': spawn_robot,
+                                                   'slam_type': slam_type}.items(),
+   condition=IfCondition(internal_nav)
   )
 
   # rviz initialization
@@ -85,12 +83,9 @@ def generate_launch_description():
              output='screen'
   )
 
-  use_sim_time_param = SetParameter(name='use_sim_time', value=True)
-
   ld = LaunchDescription(ARGUMENTS)
-  ld.add_action(use_sim_time_param)
+  ld.add_action(SetParameter(name='use_sim_time', value=True))
   ld.add_action(world)
-  ld.add_action(localization)
   ld.add_action(navigation)
   ld.add_action(rviz)
   return ld

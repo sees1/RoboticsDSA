@@ -8,74 +8,115 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.conditions import IfCondition
 from launch.substitutions import PythonExpression, LaunchConfiguration
 
-from launch_ros.actions import SetRemap, Node, SetParameter
+from launch_ros.actions import SetRemap, Node, SetParameter, LoadComposableNodes
+from launch_ros.descriptions import ComposableNode, ParameterFile
+from nav2_common.launch import RewrittenYaml
+
+current_package_share = get_package_share_directory('test_environment')
 
 ARGUMENTS = [
-    DeclareLaunchArgument('slam_type', default_value='toolbox',
-                          choices = ['toolbox', 'rtabmap'],
-                          description='slam solver for robot')
+  DeclareLaunchArgument('params_file', default_value=os.path.join(current_package_share, 'config', 'nav.yaml'),
+    description='Full path to the ROS2 parameters file to use for all launched nodes'),
+  DeclareLaunchArgument('graph_file', default_value=os.path.join(current_package_share, 'maps', 'level1.json'),
+    description='Full path to the ROS2 graph .json file'),
 ]
 
 def launch(context, *args, **kwargs):
-    # constant's
-    current_package_name = 'test_environment'
-    nav2_bringup_package_name = 'nav2_bringup'
+    params_file = LaunchConfiguration('params_file')
+    graph_file = LaunchConfiguration('graph_file')
 
-    slam_type = LaunchConfiguration('slam_type').perform(context)
+    lifecycle_nodes = ['controller_server',
+                       'smoother_server',
+                       'planner_server',
+                       'route_server',
+                       'behavior_server',
+                       'bt_navigator',
+                       'waypoint_follower',
+                       'velocity_smoother']
 
-    # config's path
-    nav2_params_path = os.path.join(get_package_share_directory(current_package_name), 'config', 'navigation', 'nav.yaml')
-    rtabmap_config_path = os.path.join(get_package_share_directory(current_package_name), 'config', 'navigation', 'rtabmap.yaml')
-    slam_toolbox_config_path = os.path.join(get_package_share_directory(current_package_name), 'config', 'navigation', 'toolbox.yaml')
+    remappings = [('/tf', 'tf'),
+                  ('/tf_static', 'tf_static')]
 
-    # launch's path
-    nav2_launch_path = os.path.join(get_package_share_directory(nav2_bringup_package_name), 'launch', 'navigation_launch.py')
+    param_substitutions = {
+      'graph_filepath': graph_file
+    }
 
-    # navigation stack ver.2 start
-    nav2 = GroupAction([
-        SetRemap('/global_costmap/scan', '/scan'),
-        SetRemap('/local_costmap/scan', '/scan'),
-
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(nav2_launch_path),
-            launch_arguments=[('use_sim_time', 'true'),
-                              ('params_file', nav2_params_path),
-                              ('use_composition', 'False'),
-                              ('namespace', '')]
-        ),
-    ])
-
-    rtabmap_slam = Node(
-        package='rtabmap_slam',
-        executable='rtabmap',
-        name="rtabmap",
-        output="screen",
-        parameters=[rtabmap_config_path],
-        remappings=[
-            ("/grid_prob_map", "/map"),
-            ("scan_cloud", "/camera/points"),
-            ("rgb/image", "/camera/image_raw"),
-            ("rgb/camera_info", "/camera/camera_info"),
-            ("depth/image", "/camera/depth/image_raw")
-        ],
-        arguments=["--delete_db_on_start"],
-        condition=IfCondition(PythonExpression([repr(slam_type), " == 'rtabmap'"]))
+    configured_params = ParameterFile(
+      RewrittenYaml(
+          source_file=params_file,
+          root_key='',
+          param_rewrites=param_substitutions,
+          convert_types=True),
+      allow_substs=True
     )
 
-    slam_toolbox = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(get_package_share_directory('slam_toolbox'), 'launch', 'online_async_launch.py')),
-        launch_arguments={
-            'slam_params_file': slam_toolbox_config_path,
-            'use_sim_time': 'true',
-            'autostart': 'true',
-        }.items(),
-        condition=IfCondition(PythonExpression([repr(slam_type), " == 'toolbox'"]))
+    load_composable_nodes = LoadComposableNodes(
+      target_container='nav2_container',
+      composable_node_descriptions=[
+        ComposableNode(
+            package='nav2_controller',
+            plugin='nav2_controller::ControllerServer',
+            name='controller_server',
+            parameters=[configured_params],
+            remappings=remappings + [('cmd_vel', 'cmd_vel_nav')]),
+        ComposableNode(
+            package='nav2_smoother',
+            plugin='nav2_smoother::SmootherServer',
+            name='smoother_server',
+            parameters=[configured_params],
+            remappings=remappings),
+        ComposableNode(
+            package='nav2_route',
+            plugin='nav2_route::RouteServer',
+            name='route_server',
+            parameters=[configured_params],
+            remappings=remappings),
+        ComposableNode(
+            package='nav2_planner',
+            plugin='nav2_planner::PlannerServer',
+            name='planner_server',
+            parameters=[configured_params],
+            remappings=remappings),
+        ComposableNode(
+            package='nav2_behaviors',
+            plugin='behavior_server::BehaviorServer',
+            name='behavior_server',
+            parameters=[configured_params],
+            remappings=remappings),
+        ComposableNode(
+            package='nav2_bt_navigator',
+            plugin='nav2_bt_navigator::BtNavigator',
+            name='bt_navigator',
+            parameters=[configured_params],
+            remappings=remappings),
+        ComposableNode(
+            package='nav2_waypoint_follower',
+            plugin='nav2_waypoint_follower::WaypointFollower',
+            name='waypoint_follower',
+            parameters=[configured_params],
+            remappings=remappings),
+        ComposableNode(
+            package='nav2_velocity_smoother',
+            plugin='nav2_velocity_smoother::VelocitySmoother',
+            name='velocity_smoother',
+            parameters=[configured_params],
+            remappings=remappings +
+                        [('cmd_vel', 'cmd_vel_nav'), ('cmd_vel_smoothed', 'cmd_vel')]),
+        ComposableNode(
+            package='nav2_lifecycle_manager',
+            plugin='nav2_lifecycle_manager::LifecycleManager',
+            name='lifecycle_manager_navigation',
+            parameters=[{'use_sim_time': 'true',
+                            'autostart': 'true',
+                            'node_names': lifecycle_nodes}]),
+      ],
     )
 
-    return [nav2, rtabmap_slam, slam_toolbox]
+
+    return [load_composable_nodes]
 
 def generate_launch_description():
-    ld = LaunchDescription(ARGUMENTS)
-    ld.add_action(SetParameter(name='use_sim_time', value = True))
-    ld.add_action(OpaqueFunction(function=launch))
-    return ld
+  ld = LaunchDescription(ARGUMENTS)
+  ld.add_action(SetParameter(name='use_sim_time', value = True))
+  ld.add_action(OpaqueFunction(function=launch))
+  return ld
