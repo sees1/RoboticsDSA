@@ -15,7 +15,7 @@ from nav2_common.launch import RewrittenYaml
 current_package_share = get_package_share_directory('test_environment')
 
 ARGUMENTS = [
-  DeclareLaunchArgument('params_file', default_value=os.path.join(current_package_share, 'config', 'nav.yaml'),
+  DeclareLaunchArgument('params_file', default_value=os.path.join(current_package_share, 'config', 'navigation', 'nav.yaml'),
     description='Full path to the ROS2 parameters file to use for all launched nodes'),
   DeclareLaunchArgument('graph_file', default_value=os.path.join(current_package_share, 'maps', 'level1.json'),
     description='Full path to the ROS2 graph .json file'),
@@ -70,7 +70,7 @@ def launch(context, *args, **kwargs):
             plugin='nav2_route::RouteServer',
             name='route_server',
             parameters=[configured_params],
-            remappings=remappings),
+            remappings=remappings + [('plan', 'route_plan')]),
         ComposableNode(
             package='nav2_planner',
             plugin='nav2_planner::PlannerServer',
@@ -106,8 +106,8 @@ def launch(context, *args, **kwargs):
             package='nav2_lifecycle_manager',
             plugin='nav2_lifecycle_manager::LifecycleManager',
             name='lifecycle_manager_navigation',
-            parameters=[{'use_sim_time': 'true',
-                            'autostart': 'true',
+            parameters=[{'use_sim_time': True,
+                            'autostart': True,
                             'node_names': lifecycle_nodes}]),
       ],
     )

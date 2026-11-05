@@ -10,8 +10,8 @@ from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch import LaunchDescription
 
 ARGUMENTS = [
-    DeclareLaunchArgument('pose_estimator', default_value="'odometry'",
-                          choices = ["'rgbd_odometry'", "'odometry'"],
+    DeclareLaunchArgument('pose_estimator', default_value='odometry',
+                          choices = ['rgbd_odometry', 'odometry'],
                           description='Pose estimators for robot'),
     DeclareLaunchArgument('model', default_value='diff',
                           choices=['diff', 'rocker_bogie'],
@@ -36,7 +36,7 @@ def evaluate_spawn(context, *args, **kwargs):
   nav2_param_path = os.path.join(get_package_share_directory(current_package_name), 'config', 'navigation', 'nav.yaml')
 
   # rgbd odom path
-  rgbd_odom_config_path = os.path.join(get_package_share_directory(current_package_name), 'config', 'localization', 'rgdb_odometry.yaml')
+  rgbd_odom_config_path = os.path.join(get_package_share_directory(current_package_name), 'config', 'localization', 'rgbd_odometry.yaml')
 
   # ekf config's path
   ekf_config_dir = os.path.join(get_package_share_directory(current_package_name), 'config', 'localization')
@@ -69,13 +69,13 @@ def evaluate_spawn(context, *args, **kwargs):
         ("odom", "/odom_rgbd")
     ],
     arguments=["--ros-args", "--log-level", "warn"],
-    condition = IfCondition(PythonExpression([pose_estimator, " == 'rgbd_odometry'"]))
+    condition = IfCondition(PythonExpression([repr(pose_estimator), " == 'rgbd_odometry'"]))
   )
 
-  ekf = Node(
+  ekf_odom = Node(
     package='robot_localization',
     executable='ekf_node',
-    name='ekf_filter_node',
+    name='ekf_odom_node',
     output='screen',
     arguments=["--ros-args", "--log-level", "info"],
     parameters=[os.path.join(ekf_config_dir, ekf_config_name)]
@@ -86,7 +86,7 @@ def evaluate_spawn(context, *args, **kwargs):
     package='rclcpp_components',
     executable='component_container_isolated',
     parameters=[nav2_param_path, 
-                {'autostart': 'true'}],
+                {'autostart': True}],
     arguments=['--ros-args', '--log-level', 'info'],
     output='screen'
   )
@@ -104,14 +104,14 @@ def evaluate_spawn(context, *args, **kwargs):
   )
 
   nav = IncludeLaunchDescription(
-    PythonLaunchDescriptionSource(os.path.join(get_package_share_directory(current_package_name), 'launch', 'navigation', 'navigation.py')),
+    PythonLaunchDescriptionSource(os.path.join(get_package_share_directory(current_package_name), 'launch', 'navigation', 'navigation.launch.py')),
     launch_arguments={'params_file': nav2_param_path}.items()
   )
 
   return [rocker_bogie_controller,
           diff_cont_controller,
           rgbd_odometry,
-          ekf,
+          ekf_odom,
           nav2_container,
           mapping,
           loc,

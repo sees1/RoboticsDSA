@@ -19,8 +19,8 @@ ARGUMENTS = [
     DeclareLaunchArgument('internal_nav', default_value='True',
                           choices=['True', 'False'],
                           description='Internal navigation'),
-    DeclareLaunchArgument('pose_estimator', default_value="'odometry'",
-                          choices = ["'rgbd_odometry'", "'odometry'"],
+    DeclareLaunchArgument('pose_estimator', default_value='odometry',
+                          choices = ['rgbd_odometry', 'odometry'],
                           description='Pose estimators for eureka robot'),
     DeclareLaunchArgument('model', default_value='diff',
                           choices=['diff', 'rocker_bogie'],
@@ -44,6 +44,7 @@ def generate_launch_description():
   internal_nav = LaunchConfiguration('internal_nav')
   pose_estimator = LaunchConfiguration('pose_estimator')
   slam_type = LaunchConfiguration('slam_type')
+  mode = LaunchConfiguration('mode')
 
   # launch's path
   world_launch_path = os.path.join(get_package_share_directory(package_name), 'launch', 'world', 'world_create.launch.py')
@@ -62,10 +63,10 @@ def generate_launch_description():
   )
 
   # navigation bringup
-   navigation = IncludeLaunchDescription(PythonLaunchDescriptionSource(navigation_launch_path),
+  navigation = IncludeLaunchDescription(PythonLaunchDescriptionSource(navigation_launch_path),
                                  launch_arguments={'pose_estimator': pose_estimator,
                                                    'model': model_type,
-                                                   'mode': spawn_robot,
+                                                   'mode': mode,
                                                    'slam_type': slam_type}.items(),
    condition=IfCondition(internal_nav)
   )

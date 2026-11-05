@@ -13,7 +13,7 @@ from nav2_common.launch import RewrittenYaml
 current_package_share = get_package_share_directory('test_environment')
 
 ARGUMENTS = [
-  DeclareLaunchArgument('params_file', default_value=os.path.join(current_package_share, 'config', 'nav.yaml'),
+  DeclareLaunchArgument('params_file', default_value=os.path.join(current_package_share, 'config', 'navigation', 'nav.yaml'),
     description='Full path to the ROS2 parameters file to use for all launched nodes'),
   DeclareLaunchArgument('costmap_file', default_value=os.path.join(current_package_share, 'maps', 'level1.yaml'),
     description='Full path to the ROS2 costmap .yaml file'),
@@ -40,23 +40,6 @@ def evaluate_spawn(context, *args, **kwargs):
     allow_substs=True
   )
 
-  map_odom_transformation = Node(
-    package='tf2_ros',
-    executable='static_transform_publisher',
-    name='base_to_camera_tf',
-    arguments=[
-        '--x', '0.0',
-        '--y', '0.0',
-        '--z', '0.0',
-        '--roll', '0.0',
-        '--pitch', '0.0',
-        '--yaw', '0.0',
-        '--frame-id', 'map',
-        '--child-frame-id', 'odom'
-    ],
-    output='screen'
-  )
-
   load_composable_nodes = LoadComposableNodes(
     target_container='nav2_container',
     composable_node_descriptions=[
@@ -76,13 +59,13 @@ def evaluate_spawn(context, *args, **kwargs):
           package='nav2_lifecycle_manager',
           plugin='nav2_lifecycle_manager::LifecycleManager',
           name='lifecycle_manager_localization',
-          parameters=[{'use_sim_time': 'true',
-                        'autostart': 'true',
+          parameters=[{'use_sim_time': True,
+                        'autostart': True,
                         'node_names': lifecycle_nodes}]),
     ],
   )
 
-  return [map_odom_transformation, load_composable_nodes]
+  return [load_composable_nodes]
 
 
 def generate_launch_description():
