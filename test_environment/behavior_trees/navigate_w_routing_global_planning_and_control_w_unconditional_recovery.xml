@@ -1,0 +1,64 @@
+<!--
+  Route-based navigation with unconditional recovery, without error-code conditions.
+  Each contextual recovery clears its costmap and retries once.
+  System recovery cycles through costmap clearing, waiting, and BackUp.
+-->
+
+<root main_tree_to_execute="NavigateWRoutingGlobalPlanningAndControlWithUnconditionalRecovery">
+  <BehaviorTree ID="NavigateWRoutingGlobalPlanningAndControlWithUnconditionalRecovery">
+
+    <RecoveryNode number_of_retries="6" name="NavigateRecovery">
+      <PipelineSequence name="NavigateWithReplanning">
+        <ControllerSelector selected_controller="{selected_controller}" default_controller="FollowPath" topic_name="controller_selector"/>
+        <PlannerSelector selected_planner="{selected_planner}" default_planner="GridBased" topic_name="planner_selector"/>
+        <RecoveryNode number_of_retries="1" name="ComputeRoute">
+          <RateController hz="0.5" name="ComputeRouteRateController">
+            <Fallback>
+              <ReactiveSequence>
+                <Inverter>
+                  <GlobalUpdatedGoal/>
+                </Inverter>
+                <IsPathValid path="{route_path}"/>
+              </ReactiveSequence>
+              <Sequence>
+                <ComputeRoute goal="{goal}" path="{route_path}" route="{route}" use_poses="true"/>
+                <ExtractRouteNodesAsGoals route="{route}" goals="{route_goals}"/>
+                <AppendGoalPoseToGoals input_goals="{route_goals}" output_goals="{route_goals}" goal_pose="{goal}"/>
+              </Sequence>
+            </Fallback>
+          </RateController>
+          <ClearEntireCostmap name="ClearGlobalCostmap-Context" service_name="global_costmap/clear_entirely_global_costmap"/>
+        </RecoveryNode>
+
+        <RateController hz="1.0">
+          <RecoveryNode number_of_retries="1" name="ComputePathToPose">
+            <Sequence>
+              <RemovePassedGoals input_goals="{route_goals}" output_goals="{route_goals}" radius="0.5"/>
+              <GetNextFewGoals input_goals="{route_goals}" num_goals="2" output_goals="{planning_goals}"/>
+              <ComputePathThroughPoses goals="{planning_goals}" path="{path}" planner_id="{selected_planner}"/>
+            </Sequence>
+            <ClearEntireCostmap name="ClearGlobalCostmap-Context" service_name="global_costmap/clear_entirely_global_costmap"/>
+          </RecoveryNode>
+        </RateController>
+
+        <RecoveryNode number_of_retries="1" name="FollowPath">
+          <FollowPath path="{path}" controller_id="{selected_controller}"/>
+          <ClearEntireCostmap name="ClearLocalCostmap-Context" service_name="local_costmap/clear_entirely_local_costmap"/>
+        </RecoveryNode>
+      </PipelineSequence>
+
+      <ReactiveFallback name="RecoveryFallback">
+        <GoalUpdated/>
+        <RoundRobin name="RecoveryActions">
+          <Sequence name="ClearingActions">
+            <ClearEntireCostmap name="ClearLocalCostmap-Subtree" service_name="local_costmap/clear_entirely_local_costmap"/>
+            <ClearEntireCostmap name="ClearGlobalCostmap-Subtree" service_name="global_costmap/clear_entirely_global_costmap"/>
+          </Sequence>
+          <Wait wait_duration="5"/>
+          <BackUp backup_dist="0.30" backup_speed="0.15"/>
+        </RoundRobin>
+      </ReactiveFallback>
+    </RecoveryNode>
+
+  </BehaviorTree>
+</root>

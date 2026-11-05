@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<root main_tree_to_execute="NavigateWRoutingGlobalPlanningAndControlWithUnconditionalRecovery">
+    <!-- ////////// -->
+    <BehaviorTree ID="NavigateWRoutingGlobalPlanningAndControlWithUnconditionalRecovery">
+        <Control ID="RecoveryNode" name="NavigateRecovery" number_of_retries="6">
+            <Control ID="PipelineSequence" name="NavigateWithReplanning">
+                <Action ID="PlannerSelector" default_planner="GridBased" selected_planner="{selected_planner}" topic_name="planner_selector"/>
+                <Control ID="RecoveryNode" name="ComputeRoute" number_of_retries="1">
+                    <Decorator ID="RateController" hz="0.5" name="ComputeRouteRateController">
+                        <Fallback>
+                            <ReactiveSequence>
+                                <Inverter>
+                                    <Condition ID="GlobalUpdatedGoal"/>
+                                </Inverter>
+                                <Condition ID="IsPathValid" path="{route_path}"/>
+                            </ReactiveSequence>
+                            <Sequence>
+                                <Action ID="ComputeRoute" goal="{goal}" path="{route_path}" route="{route}" use_poses="true"/>
+                                <Action ID="ExtractRouteNodesAsGoals" goals="{route_goals}" route="{route}"/>
+                                <Action ID="AppendGoalPoseToGoals" goal_pose="{goal}" input_goals="{route_goals}" output_goals="{route_goals}"/>
+                            </Sequence>
+                        </Fallback>
+                    </Decorator>
+                    <Action ID="ClearEntireCostmap" name="ClearGlobalCostmap-Context" service_name="global_costmap/clear_entirely_global_costmap"/>
+                </Control>
+                <Decorator ID="RateController" hz="1.0">
+                    <Control ID="RecoveryNode" name="ComputePathToPose" number_of_retries="1">
+                        <Sequence>
+                            <Action ID="M20ProRemovePassedGoals" input_goals="{route_goals}" output_goals="{route_goals}" radius="0.5"/>
+                            <Action ID="GetNextGoal" input_goals="{route_goals}" output_goal="{planning_goal}"/>
+                            <Action ID="ComputePathToPose" goal="{planning_goal}" path="{path}" planner_id="{selected_planner}" controller_id="{selected_controller}"/>
+                        </Sequence>
+                        <Action ID="ClearEntireCostmap" name="ClearGlobalCostmap-Context" service_name="global_costmap/clear_entirely_global_costmap"/>
+                    </Control>
+                </Decorator>
+                <Control ID="RecoveryNode" name="FollowPath" number_of_retries="1">
+                    <Action ID="FollowPath" controller_id="{selected_controller}" path="{path}"/>
+                    <Action ID="ClearEntireCostmap" name="ClearLocalCostmap-Context" service_name="local_costmap/clear_entirely_local_costmap"/>
+                </Control>
+            </Control>
+            <ReactiveFallback name="RecoveryFallback">
+                <Condition ID="GoalUpdated"/>
+                <Control ID="RoundRobin" name="RecoveryActions">
+                    <Sequence name="ClearingActions">
+                        <Action ID="ClearEntireCostmap" name="ClearLocalCostmap-Subtree" service_name="local_costmap/clear_entirely_local_costmap"/>
+                        <Action ID="ClearEntireCostmap" name="ClearGlobalCostmap-Subtree" service_name="global_costmap/clear_entirely_global_costmap"/>
+                    </Sequence>
+                    <Action ID="Wait" wait_duration="5"/>
+                    <Action ID="BackUp" backup_dist="0.30" backup_speed="0.15"/>
+                </Control>
+            </ReactiveFallback>
+        </Control>
+    </BehaviorTree>
+</root>
